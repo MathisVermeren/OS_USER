@@ -1,0 +1,32 @@
+			0						1						2						3
+						01						12						23		
+
+						mtx01						mtx12						mtx23
+						used01						used12						used23
+						-> avail01					-> avail12					-> avail23
+						<- ready01					<- ready12					<- ready23
+
+	while (1)				|		while (1)					while (1)					while (1)
+		prendre mtx01			|			prendre mtx01					prendre mtx12					prendre mtx23
+						|
+		tt que used01==1		|			tt que used01==0				tt que used12==0				tt que used23==0
+			wait sur ready01	|				wait sur avail01				wait sur avail12				wait sur avail23
+						|			recup donnee étage 0				recup donnee étage 1				recup donnee étage 2
+						|			used01=0					used12=0					used23=0
+						|
+									signal sur ready01				signal sur ready12				signal sur ready23
+									relacher mtx01					relacher mtx12					relacher mtx23
+
+									prendre mtx12					prendre mtx23
+									tt que used12==1				tt que used23==1
+										wait sur ready12				wait sur ready23
+									produire 1 vers 2				produire 2 vers 3
+									used12=1					used23=1
+									signal sur avail12				signal sur avail23
+									relacher mtx12					relacher mtx23
+		produire 0 vers 1
+		used01=1
+
+		signal sur avail01
+
+		relacher mtx01
