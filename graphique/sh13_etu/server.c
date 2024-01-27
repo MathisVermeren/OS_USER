@@ -236,11 +236,11 @@ int main(int argc, char *argv[])
 	int n;
 	int i;
 
-        char com;
-        char clientIpAddress[256], clientName[256];
-        int clientPort;
-        int id;
-        char reply[256];
+	char com;
+	char clientIpAddress[256], clientName[256];
+	int clientPort;
+	int id;
+	char reply[256];
 
 
      if (argc < 2) {
@@ -361,9 +361,36 @@ int main(int argc, char *argv[])
 		{
 			case 'G':
 				// RAJOUTER DU CODE ICI
+				int card;
+				sscanf(buffer, "G %d %d", &id, &card);
+				if(id == joueurCourant){
+					if(card == deck[12]){// Win
+						sprintf(reply,"S %d %d", id, card);
+						broadcastMessage(reply);
+					}else{ // Wrong card
+						sprintf(reply,"F %d", card);
+						broadcastMessage(reply);
+					}
+					joueurCourant = (joueurCourant + 1)%4;
+				}
 				break;
-			case 'O':
+			case 'O': 
 				// RAJOUTER DU CODE ICI
+				int symbole;
+				sscanf(buffer, "O %d %d", &id, &symbole);
+				if(id == joueurCourant){
+					for(int i = 0; i < 4; i++){
+						if(i != joueurCourant){ // On ne veut pas envoyer la réponse au joueur qui a demandé
+							if(tableCartes[i][symbole]){
+								sprintf(reply,"V %d %d %d", i, symbole, 100);
+							}else{
+								sprintf(reply,"V %d %d %d", i, symbole, 0);
+							} 
+							broadcastMessage(reply);
+						}
+					}
+					joueurCourant = (joueurCourant + 1)%4;
+				}
 				break;
 			case 'S':
 				// RAJOUTER DU CODE ICI
