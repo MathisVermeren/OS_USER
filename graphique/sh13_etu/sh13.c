@@ -239,8 +239,8 @@ int main(int argc, char ** argv)
 				{
 					sprintf(sendBuffer,"C %s %d %s",gClientIpAddress,gClientPort,gName);
 
+					sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
 					// RAJOUTER DU CODE ICI
-
 					connectEnabled=0;
 				}
 				else if ((mx>=0) && (mx<200) && (my>=90) && (my<330))
@@ -271,6 +271,9 @@ int main(int argc, char ** argv)
 					{
 						sprintf(sendBuffer,"G %d %d",gId, guiltSel);
 
+						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
+						goEnabled = 0;
+
 					// RAJOUTER DU CODE ICI
 
 					}
@@ -278,12 +281,18 @@ int main(int argc, char ** argv)
 					{
 						sprintf(sendBuffer,"O %d %d",gId, objetSel);
 
+						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
+						goEnabled = 0;
+
 					// RAJOUTER DU CODE ICI
 
 					}
 					else if ((objetSel!=-1) && (joueurSel!=-1))
 					{
 						sprintf(sendBuffer,"S %d %d %d",gId, joueurSel,objetSel);
+
+						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
+						goEnabled = 0;
 
 					// RAJOUTER DU CODE ICI
 
@@ -311,28 +320,40 @@ int main(int argc, char ** argv)
 			case 'I':
 				// RAJOUTER DU CODE ICI
 				sprintf("Votre Id est = ",gbuffer);
+				sscanf(gbuffer, "I %d", &gId);
 
 				break;
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
 				// RAJOUTER DU CODE ICI
+				sprintf("La liste des joueurs est = ",gbuffer);
+				sscanf(gbuffer, "L %s %s %s %s", gNames[0], gNames[1], gNames[2], gNames[3]);
 
 				break;
 			// Message 'D' : le joueur recoit ses trois cartes
 			case 'D':
 				// RAJOUTER DU CODE ICI
+				sprintf("Vos trois cartes sont = ",gbuffer);
+				sscanf(gbuffer, "D %d %d %d", &b[0], &b[1], &b[2]);
 
 				break;
 			// Message 'M' : le joueur recoit le n° du joueur courant
 			// Cela permet d'affecter goEnabled pour autoriser l'affichage du bouton go
 			case 'M':
 				// RAJOUTER DU CODE ICI
+				int currentPlayer;
+				sscanf(gbuffer, "M %d", &currentPlayer);
+				(currentPlayer == gId)?(goEnabled = 1):(goEnabled = 0);
 
 				break;
 			// Message 'V' : le joueur recoit une valeur de tableCartes
 			case 'V':
 				// RAJOUTER DU CODE ICI
-
+				int valeur;
+				int player;
+				int symbole;
+				sscanf(gbuffer, "V %d %d %d", &player, &symbole, &valeur);
+				tableCartes[player][symbole] = valeur;
 				break;
 		}
 		synchro=0;

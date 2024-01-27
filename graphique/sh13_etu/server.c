@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 	printDeck();
 	melangerDeck();
 	createTable();
-	//printDeck();
+	printDeck();
 	joueurCourant=0;
 
 	for (i=0;i<4;i++)
@@ -359,17 +359,17 @@ int main(int argc, char *argv[])
 	{
 		switch (buffer[0])
 		{
-                	case 'G':
+			case 'G':
 				// RAJOUTER DU CODE ICI
 				break;
-                	case 'O':
+			case 'O':
 				// RAJOUTER DU CODE ICI
 				break;
 			case 'S':
 				// RAJOUTER DU CODE ICI
 				break;
-                	default:
-                        	break;
+			default:
+				break;
 		}
         }
      	close(newsockfd);
