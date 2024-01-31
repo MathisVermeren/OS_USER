@@ -6,6 +6,20 @@ Executez cmd.sh avec la commande `sudo bash ./cmd.sh` (sous linux) pour compiler
 SH13 est un jeu qui se joue à 4, il faut donc ouvrir 4 terminaux et exécuter 4 fois:
 `./sh13 localhost {port_serveur} localhost {port_client1} {Nom_Joueur}` 
 
+## Regles : 
+A chaque partie, une carte suspect est posée face cachée au centre de la table. Elle représente le coupable.
+Le reste des cartes est réparti entre les joueurs.
+
+A son tour, le joueur réalise une action parmi les 3 possibles :
+
+ * Interroger tous les joueurs sur un symbole. Les joueurs lèvent la main s’ils possèdent ce symbole. Mais sans en préciser la quantité.
+ * Interroger un joueur à propos d’un symbole spécifique. Le joueur devra indiquer le nombre exact de ce symbole qu’il possède.
+ * Accuser un suspect. Il vérifie alors discrètement la carte coupable.
+Si la réponse est juste, il gagne la partie. Si la réponse est fausse, il est éliminé.
+Mais il devra continuer à répondre aux questions de ses adversaires.
+
+(D'après [https://www.alkarion.com/produit/sherlock-13-jeu-de-societe/](www.alkarion.com))
+
 ## Explications Techniques : 
 ### Côté Serveur : 
 Le programme commence par la configuration d'un socket serveur en utilisant la fonction `socket` avec le protocole de transport `SOCK_STREAM` pour des connexions TCP. La structure `struct sockaddr_in` est ensuite utilisée pour spécifier les détails du serveur tels que l'adresse IP, le numéro de port, et le type de protocole (`AF_INET` pour IPv4). La fonction `bind` attache le socket à l'adresse et au port spécifiés, et `listen` prépare le socket pour l'écoute des connexions entrantes.
