@@ -18,7 +18,7 @@ A son tour, le joueur réalise une action parmi les 3 possibles :
 Si la réponse est juste, il gagne la partie. Si la réponse est fausse, il est éliminé.
 Mais il devra continuer à répondre aux questions de ses adversaires.
 
-(D'après [https://www.alkarion.com/produit/sherlock-13-jeu-de-societe/](www.alkarion.com))
+(D'après [www.alkarion.com](https://www.alkarion.com/produit/sherlock-13-jeu-de-societe/))
 
 ## Explications Techniques : 
 ### Côté Serveur : 
