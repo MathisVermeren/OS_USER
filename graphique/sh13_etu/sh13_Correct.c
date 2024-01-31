@@ -1,6 +1,6 @@
-#include <SDL2/SDL.h>        
-#include <SDL2/SDL_image.h>        
-#include <SDL2/SDL_ttf.h>        
+#include <SDL.h>        
+#include <SDL_image.h>        
+#include <SDL_ttf.h>        
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -28,6 +28,10 @@ int tableCartes[4][8];
 int b[3];
 int goEnabled;
 int connectEnabled;
+char disculpes[13] = {0};
+char partieFinie = 0;
+int coupable = -1;
+int gagnant = -1;
 
 char *nbobjets[]={"5","5","5","5","4","3","3","3"};
 char *nbnoms[]={"Sebastian Moran", "irene Adler", "inspector Lestrade",
@@ -83,7 +87,7 @@ void *fn_serveur_tcp(void *arg)
                 //printf("%s",gbuffer);
 
                 synchro=1;
-				printf("En attente de Synchro \n");
+
                 while (synchro);
 
      }
@@ -147,9 +151,7 @@ int main(int argc, char ** argv)
 
 	// on met le répertoire de traivail sur le répertoir de l'executable.
 	// (comme ça les chemins relatifs partent du .out et pas du dossier dans lequel on est quand on lance le programme)
-	// Technique de Noe
 	chdir(SDL_GetBasePath()); 
-
 
     SDL_Init(SDL_INIT_VIDEO);
 	TTF_Init();
@@ -241,12 +243,16 @@ int main(int argc, char ** argv)
 			case  SDL_MOUSEBUTTONDOWN:
 				SDL_GetMouseState( &mx, &my );
 				//printf("mx=%d my=%d\n",mx,my);
-				if ((mx<200) && (my<50) && (connectEnabled==1))
+				if(partieFinie)
+				{
+					//on bloque les selections
+				}
+				else if ((mx<200) && (my<50) && (connectEnabled==1))
 				{
 					sprintf(sendBuffer,"C %s %d %s",gClientIpAddress,gClientPort,gName);
 
 					sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
-					// RAJOUTER DU CODE ICI
+
 					connectEnabled=0;
 				}
 				else if ((mx>=0) && (mx<200) && (my>=90) && (my<330))
@@ -280,8 +286,6 @@ int main(int argc, char ** argv)
 						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
 						goEnabled = 0;
 
-					// RAJOUTER DU CODE ICI
-
 					}
 					else if ((objetSel!=-1) && (joueurSel==-1))
 					{
@@ -290,8 +294,6 @@ int main(int argc, char ** argv)
 						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
 						goEnabled = 0;
 
-					// RAJOUTER DU CODE ICI
-
 					}
 					else if ((objetSel!=-1) && (joueurSel!=-1))
 					{
@@ -299,8 +301,6 @@ int main(int argc, char ** argv)
 
 						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
 						goEnabled = 0;
-
-					// RAJOUTER DU CODE ICI
 
 					}
 				}
@@ -319,59 +319,55 @@ int main(int argc, char ** argv)
 
         if (synchro==1)
         {
-			printf("consomme |%s|\n",gbuffer); //LE MESSAGE EST BON
-			printf("On entre dans le switch pour gbuffer[0] = %c \n", gbuffer[0]);
-			fflush(stdout);
+                printf("consomme |%s|\n",gbuffer);
 		switch (gbuffer[0])
 		{
 			// Message 'I' : le joueur recoit son Id
 			case 'I':
-				// RAJOUTER DU CODE ICI
-				fflush(stdout);
-				printf("On entre dans I\n");
-				fflush(stdout);
-				printf("gbuffer = %s\n", gbuffer);
-				fflush(stdout);
-				sscanf(gbuffer, "I %d", &gId);//Segmentation fault à cette ligne
-				printf("gId = %d\n", gId);
-				fflush(stdout);
+				sscanf(gbuffer, "I %d", &gId);
+
 				break;
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
-				// RAJOUTER DU CODE ICI
-				printf("On entre dans L\n");
-				fflush(stdout);
 				sscanf(gbuffer, "L %s %s %s %s", gNames[0], gNames[1], gNames[2], gNames[3]);
-
 
 				break;
 			// Message 'D' : le joueur recoit ses trois cartes
 			case 'D':
-				// RAJOUTER DU CODE ICI
-				printf("On entre dans D\n");
-				sprintf("Vos trois cartes sont = ",gbuffer);
 				sscanf(gbuffer, "D %d %d %d", &b[0], &b[1], &b[2]);
 
 				break;
 			// Message 'M' : le joueur recoit le n° du joueur courant
 			// Cela permet d'affecter goEnabled pour autoriser l'affichage du bouton go
 			case 'M':
-				// RAJOUTER DU CODE ICI
-				printf("On entre dans M\n");
-				int currentPlayer;
-				sscanf(gbuffer, "M %d", &currentPlayer);
-				(currentPlayer == gId)?(goEnabled = 1):(goEnabled = 0);
+				int current;
+				sscanf(gbuffer, "M %d", &current);
+				if(current == gId)
+					goEnabled = 1;
+				else 
+					goEnabled = 0;
 
 				break;
 			// Message 'V' : le joueur recoit une valeur de tableCartes
 			case 'V':
-				// RAJOUTER DU CODE ICI
-				printf("On entre dans V\n");
-				int valeur;
-				int player;
-				int symbole;
-				sscanf(gbuffer, "V %d %d %d", &player, &symbole, &valeur);
-				tableCartes[player][symbole] = valeur;
+				int joueur,  symbole,  nombre;
+				sscanf(gbuffer, "V %d %d %d", &joueur, &symbole, &nombre);
+				if(!(nombre == 100 && tableCartes[joueur][symbole] != -1)) //on évite de passer à une information moins précise
+				{
+					tableCartes[joueur][symbole] = nombre;
+				}
+
+				break;
+			//Message 'F': le joueur recoit la valeur d'un suspect disculpe (un adversaire s'est trompe)
+			case 'F':
+				int carte;
+				sscanf(gbuffer, "F %d", &carte);
+				disculpes[carte] = 1;
+				break;
+			//Message 'S': le joueur recoit la valeur du joueur gagnant et du coupable 
+			case 'S':
+				partieFinie = 1;
+				sscanf(gbuffer, "S %d %d", &gagnant, &coupable);
 				break;
 		}
 		synchro=0;
@@ -385,21 +381,51 @@ int main(int argc, char ** argv)
 	SDL_Rect rect = {0, 0, 1024, 768}; 
 	SDL_RenderFillRect(renderer, &rect);
 
-	if (joueurSel!=-1)
+	if (joueurSel!=-1 && !partieFinie)
 	{
 		SDL_SetRenderDrawColor(renderer, 255, 180, 180, 255);
 		SDL_Rect rect1 = {0, 90+joueurSel*60, 200 , 60}; 
 		SDL_RenderFillRect(renderer, &rect1);
 	}	
 
-	if (objetSel!=-1)
+	if(partieFinie) // a la fin de la partie on affiche le gagnant en vert et les perdants en rouge
+	{
+		for(int i = 0; i < 4; i++)
+		{
+			SDL_SetRenderDrawColor(renderer, 255, 150, 150, 255);
+			SDL_Rect rect1 = {0, 90+i*60, 200 , 60}; 
+			SDL_RenderFillRect(renderer, &rect1);
+		}
+		SDL_SetRenderDrawColor(renderer, 150, 255, 150, 255);
+			SDL_Rect rect1 = {0, 90+gagnant*60, 200 , 60}; 
+			SDL_RenderFillRect(renderer, &rect1);
+	}
+
+	if (objetSel!=-1 && !partieFinie)
 	{
 		SDL_SetRenderDrawColor(renderer, 180, 255, 180, 255);
 		SDL_Rect rect1 = {200+objetSel*60, 0, 60 , 90}; 
 		SDL_RenderFillRect(renderer, &rect1);
-	}	
+	}
 
-	if (guiltSel!=-1)
+	for(int i = 0; i < 13; i++) //on affiche les suspects disculpes en rouge
+	{
+		if(disculpes[i] || partieFinie)
+		{
+			SDL_SetRenderDrawColor(renderer, 255, 150, 150, 255);
+			SDL_Rect rect1 = {100, 350+i*30, 150 , 30}; 
+			SDL_RenderFillRect(renderer, &rect1);
+		}
+	}
+
+	if(partieFinie) //a la fin de la partie, on affiche le coupable en vert
+	{
+		SDL_SetRenderDrawColor(renderer, 150, 255, 150, 255);
+		SDL_Rect rect1 = {100, 350+coupable*30, 150 , 30}; 
+		SDL_RenderFillRect(renderer, &rect1);
+	}
+
+	if (guiltSel!=-1 && !partieFinie)
 	{
 		SDL_SetRenderDrawColor(renderer, 180, 180, 255, 255);
 		SDL_Rect rect1 = {100, 350+guiltSel*30, 150 , 30}; 
@@ -681,7 +707,7 @@ int main(int argc, char ** argv)
 	}
 
 	// Le bouton go
-	if (goEnabled==1)
+	if (goEnabled==1 && !partieFinie)
 	{
         	SDL_Rect dstrect = { 500, 350, 200, 150 };
         	SDL_RenderCopy(renderer, texture_gobutton, NULL, &dstrect);
